@@ -1,0 +1,41 @@
+{
+  "scenario-1-leaky-sharepoint": {
+    "general": "When Copilot surfaces unexpected content, the first question to ask is: who has access to the source? Start by reviewing SharePoint permissions and whether inheritance is configured appropriately.",
+    "DATA_ACCESS": "SharePoint permissions flow through to Copilot at query time. If a user can access a document in SharePoint, Copilot can surface it. Consider implementing the principle of least privilege.",
+    "INFORMATION_PROTECTION": "While sensitivity labels are valuable, this scenario is primarily about access control. Focus on who can see the data before focusing on data classification.",
+    "MONITORING_LIFECYCLE": "Audit logs can help you understand access patterns and detect when users access content they shouldn't. Consider enabling SharePoint audit logging."
+  },
+  "scenario-2-label-lockdown": {
+    "general": "Visual markings like watermarks don't provide technical protection. To truly control access to confidential content, you need sensitivity labels with encryption and access policies.",
+    "INFORMATION_PROTECTION": "Sensitivity labels are the foundation of information protection in Microsoft 365. They combine classification, encryption, access control, and visual markings in a single policy.",
+    "DLP_COMPLIANCE": "DLP policies can complement sensitivity labels by detecting and blocking sharing of labeled content. Consider how DLP and labels work together.",
+    "DATA_ACCESS": "This scenario is about content classification, not access permissions. While access matters, the core issue is that confidential content wasn't properly labeled."
+  },
+  "scenario-3-dlp-tripwires": {
+    "general": "When data flows through Power Platform connectors, you need DLP policies that classify connectors into groups and block cross-group data flow. Think about the boundaries between business and non-business connectors.",
+    "DLP_COMPLIANCE": "Power Platform DLP policies classify connectors as Business, Non-Business, or Blocked. Data cannot flow between Business and Non-Business connectors in the same flow.",
+    "MONITORING_LIFECYCLE": "Audit logging for Power Platform helps you detect unauthorized flows and connector usage. Consider enabling Dataverse auditing.",
+    "IDENTITY_ACCESS": "While identity controls are important, this scenario is about data flow between systems, not user access. Focus on connector governance."
+  },
+  "scenario-4-prompt-injection": {
+    "general": "Prompt injection attacks try to make AI agents perform unintended actions by embedding malicious instructions in user input. Defense requires multiple layers: hardened prompts, scoped tools, and input validation.",
+    "AGENT_SAFETY": "Three key controls for agent safety: (1) Write defensive system prompts that resist manipulation, (2) Scope tools so they can only affect resources the user should access, (3) Validate inputs to detect injection patterns.",
+    "MONITORING_LIFECYCLE": "Audit logging for agent actions helps detect and investigate potential attacks. Log the full context of each tool invocation.",
+    "INFORMATION_PROTECTION": "This scenario is about prompt security, not data classification. Sensitivity labels won't prevent prompt injection attacks."
+  },
+  "scenario-5-shadow-connector": {
+    "general": "Shadow IT happens when users connect services without IT approval. Prevent it by controlling which connectors are available and requiring approval for external integrations.",
+    "AGENT_SAFETY": "Connector allowlisting lets you define which connectors are permitted. Block unknown connectors by default and require IT review for new ones.",
+    "IDENTITY_ACCESS": "Guest access governance should require sponsorship and attestation before external users can interact with internal systems.",
+    "MONITORING_LIFECYCLE": "Usage analytics and connector auditing help you discover shadow IT integrations before they become security incidents."
+  },
+  "fallback": {
+    "general": "Think about this scenario holistically: What's the risk? What data or action is at stake? Which governance domains apply (access, classification, DLP, agent safety, monitoring)?",
+    "DATA_ACCESS": "Consider who should have access to the data involved, and whether current permissions are appropriate.",
+    "INFORMATION_PROTECTION": "Think about whether the data should be classified and protected with sensitivity labels and encryption.",
+    "DLP_COMPLIANCE": "Consider whether data is flowing to places it shouldn't, and what policies could prevent that.",
+    "IDENTITY_ACCESS": "Think about user identity, authentication strength, and access policies.",
+    "AGENT_SAFETY": "Consider whether agents have appropriate guardrails, scoped tools, and hardened prompts.",
+    "MONITORING_LIFECYCLE": "Think about auditability, change control, and how you would detect issues."
+  }
+}
