@@ -3,7 +3,7 @@
  * 
  * Deterministic rule-based grading for governance escape room submissions.
  * Scores are calculated based on:
- * - Required controls: 60 points total
+ * - Required controls: 70 points total
  * - Recommended controls: 30 points total  
  * - Anti-pattern penalties: up to -20 points
  */

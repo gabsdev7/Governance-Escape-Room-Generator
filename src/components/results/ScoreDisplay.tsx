@@ -44,7 +44,7 @@ export function ScoreDisplay({ result }: ScoreDisplayProps) {
 
         {/* Score breakdown */}
         <div className="flex-1 w-full">
-          <h3 className="font,  -semibold text-slate-900 mb-4">Score Breakdown</h3>
+          <h3 className="font-semibold text-slate-900 mb-4">Score Breakdown</h3>
           <div className="space-y-3">
             <BreakdownBar
               label="Required Controls"

@@ -24,14 +24,11 @@ Players are presented with governance challenge scenarios involving M365 Copilot
 
 ```bash
 # Clone the repository
-git clone <repository-url>
-cd GovernanceEscapeRoom
+git clone https://github.com/gabsdev7/Governance-Escape-Room-Generator.git
+cd Governance-Escape-Room-Generator
 
 # Install dependencies
 npm install
-
-# Copy environment variables
-cp .env.example .env
 
 # Start development server
 npm run dev
@@ -120,7 +117,7 @@ See [Scenarios Documentation](docs/SCENARIOS.md) for detailed scenario descripti
 
 | Component | Points |
 |-----------|--------|
-| Required Controls | 60 pts (divided equally) |
+| Required Controls | 70 pts (divided equally) |
 | Recommended Controls | 30 pts (divided equally) |
 | Anti-pattern Penalty | -4 pts each (max -20) |
 | **Total** | **0-100 pts** |
@@ -176,7 +173,7 @@ The included GitHub Action (`.github/workflows/azure-static-web-apps.yml`) handl
 
 ## License
 
-MIT
+N/A
 
 ## Resources
 

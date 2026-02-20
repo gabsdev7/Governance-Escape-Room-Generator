@@ -14,7 +14,7 @@ export const scenario5ShadowConnector: ScenarioWithRubric = {
   story: `
 ## Shadow Connector & External Sharing
 
-When Woodgrove Bank's innovation team built their Copilot Studio agent for internal Q&A, they were solving a real problem: employees spent hours searching for policy documents. The agent worked beautifully—too beautifully.
+When Fabrikam Bank's innovation team built their Copilot Studio agent for internal Q&A, they were solving a real problem: employees spent hours searching for policy documents. The agent worked beautifully—too beautifully.
 
 Word spread. Soon, the loan operations team wanted to extend it. One ambitious analyst, Jordan, had an idea: "What if we connect it to our team's Slack workspace so remote contractors can ask compliance questions?"
 
@@ -22,7 +22,7 @@ Jordan found a Slack connector in the Power Platform catalog. It wasn't on the a
 
 The queries started simple: "What's the policy on loan modifications?" But soon contractors were asking about specific customer escalations, expecting the agent to have context. And the agent, connected to internal SharePoint, obliged.
 
-For six weeks, sensitive internal banking procedures and customer handling guidelines flowed to an external Slack workspace. The channel was archived when the project ended, but the data remained on Slack's servers—outside Woodgrove's control, potentially forever.
+For six weeks, sensitive internal banking procedures and customer handling guidelines flowed to an external Slack workspace. The channel was archived when the project ended, but the data remained on Slack's servers—outside Fabrikam's control, potentially forever.
 
 IT discovered the integration during a quarterly connector audit. By then, the compliance team had a lot of explaining to do to regulators.
 

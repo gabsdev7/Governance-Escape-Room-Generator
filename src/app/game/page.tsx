@@ -17,18 +17,27 @@ export default function GamePage() {
     state,
     toggleControl,
     submitAnswers,
+    advanceScenario,
     canSubmit,
     resetGame,
+    totalScenarios,
+    currentScenarioNumber,
+    isLastScenario,
+    isScenarioComplete,
   } = useGameState();
 
   // Redirect to home if no active scenario
   useEffect(() => {
-    if (!state.currentScenario && state.status !== 'results') {
+    if (
+      !state.currentScenario &&
+      state.status !== 'results' &&
+      state.status !== 'scenario-complete'
+    ) {
       router.push('/');
     }
   }, [state.currentScenario, state.status, router]);
 
-  // Redirect to results if already submitted
+  // Redirect to results when all scenarios are done
   useEffect(() => {
     if (state.status === 'results') {
       router.push('/results');
@@ -36,9 +45,14 @@ export default function GamePage() {
   }, [state.status, router]);
 
   const handleSubmit = () => {
-    const result = submitAnswers();
-    if (result) {
+    submitAnswers();
+  };
+
+  const handleNextScenario = () => {
+    if (isLastScenario) {
       router.push('/results');
+    } else {
+      advanceScenario();
     }
   };
 
@@ -63,12 +77,98 @@ export default function GamePage() {
     );
   }
 
+  // Inter-scenario results screen
+  if (isScenarioComplete && state.gradingResult) {
+    const result = state.gradingResult;
+    return (
+      <div className="max-w-3xl mx-auto px-4 py-12">
+        {/* Progress */}
+        <div className="mb-8">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-slate-600">
+              Challenge {currentScenarioNumber} of {totalScenarios} Complete
+            </span>
+          </div>
+          <div className="h-2 bg-slate-200 rounded-full">
+            <div
+              className="h-full bg-primary-500 rounded-full transition-all duration-500"
+              style={{
+                width: `${(currentScenarioNumber / totalScenarios) * 100}%`,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Scenario result card */}
+        <div className="bg-white rounded-2xl border border-slate-200 shadow-lg p-8 text-center">
+          <div className="inline-flex items-center justify-center w-16 h-16 bg-gradient-to-br from-primary-500 to-secondary-600 rounded-2xl mb-4 shadow-lg">
+            <span className="text-3xl">{state.currentScenario.icon}</span>
+          </div>
+          <h2 className="text-2xl font-bold text-slate-900 mb-2">
+            {state.currentScenario.title}
+          </h2>
+          <p className="text-slate-500 mb-6">{state.currentScenario.topic}</p>
+
+          {/* Score */}
+          <div className="mb-6">
+            <div
+              className={`
+                inline-flex items-center justify-center w-24 h-24 rounded-full mb-2
+                ${result.score >= 90 ? 'bg-success-100 text-success-700' : ''}
+                ${result.score >= 70 && result.score < 90 ? 'bg-primary-100 text-primary-700' : ''}
+                ${result.score >= 50 && result.score < 70 ? 'bg-warning-100 text-warning-700' : ''}
+                ${result.score < 50 ? 'bg-danger-100 text-danger-700' : ''}
+              `}
+            >
+              <div>
+                <div className="text-3xl font-bold">{result.score}</div>
+                <div className="text-xs opacity-75">/ 100</div>
+              </div>
+            </div>
+            <p className="text-slate-600">
+              Grade: <span className="font-bold text-lg">{result.grade}</span>
+            </p>
+          </div>
+
+          {/* Quick feedback */}
+          <div className="grid grid-cols-3 gap-4 mb-8 text-sm">
+            <div className="bg-success-50 rounded-lg p-3">
+              <div className="text-2xl font-bold text-success-600">
+                {result.correctPicks.length}
+              </div>
+              <div className="text-success-700">Correct</div>
+            </div>
+            <div className="bg-warning-50 rounded-lg p-3">
+              <div className="text-2xl font-bold text-warning-600">
+                {result.missedPicks.length}
+              </div>
+              <div className="text-warning-700">Missed</div>
+            </div>
+            <div className="bg-danger-50 rounded-lg p-3">
+              <div className="text-2xl font-bold text-danger-600">
+                {result.unnecessaryPicks.length}
+              </div>
+              <div className="text-danger-700">Anti-pattern</div>
+            </div>
+          </div>
+
+          {/* Next button */}
+          <Button variant="primary" size="lg" onClick={handleNextScenario}>
+            {isLastScenario ? 'View Final Results' : `Next Challenge (${currentScenarioNumber + 1} of ${totalScenarios})`}
+          </Button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className="max-w-7xl mx-auto px-4 py-8">
       {/* Progress indicator */}
       <div className="mb-8">
         <div className="flex items-center justify-between mb-2">
-          <span className="text-sm text-slate-600">Game in Progress</span>
+          <span className="text-sm font-medium text-slate-600">
+            Challenge {currentScenarioNumber} of {totalScenarios}
+          </span>
           <Button variant="ghost" size="sm" onClick={handleQuit}>
             Quit Game
           </Button>
@@ -77,13 +177,31 @@ export default function GamePage() {
           <div
             className="h-full bg-primary-500 rounded-full transition-all duration-300"
             style={{
-              width: `${
-                state.selectedControlIds.length > 0
-                  ? 50 + (state.selectedControlIds.length * 5)
-                  : 25
-              }%`,
+              width: `${((currentScenarioNumber - 1) / totalScenarios) * 100 +
+                (state.selectedControlIds.length > 0
+                  ? ((1 / totalScenarios) * 50)
+                  : 0)}%`,
             }}
           />
+        </div>
+        {/* Scenario dots */}
+        <div className="flex items-center justify-center gap-2 mt-3">
+          {state.scenarios.map((s, i) => (
+            <div
+              key={s.id}
+              className={`
+                w-8 h-8 rounded-full flex items-center justify-center text-xs font-medium transition-all
+                ${i < state.currentScenarioIndex
+                  ? 'bg-success-100 text-success-700 border-2 border-success-300'
+                  : i === state.currentScenarioIndex
+                  ? 'bg-primary-500 text-white shadow-md'
+                  : 'bg-slate-100 text-slate-400 border border-slate-200'}
+              `}
+              title={s.title}
+            >
+              {i < state.currentScenarioIndex ? '✓' : i + 1}
+            </div>
+          ))}
         </div>
       </div>
 

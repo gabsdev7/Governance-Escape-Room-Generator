@@ -38,7 +38,7 @@ export interface AdminRoleMapping {
  * Score breakdown by category
  */
 export interface ScoreBreakdown {
-  /** Points earned from required controls (0-60) */
+  /** Points earned from required controls (0-70) */
   requiredCoverage: number;
   /** Maximum points possible for required controls */
   requiredMaxPoints: number;

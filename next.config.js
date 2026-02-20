@@ -3,7 +3,8 @@ const nextConfig = {
   // Enable strict mode for better error detection
   reactStrictMode: true,
 
-  // Output standalone for Azure Static Web Apps compatibility
+  // Output standalone for Azure Static Web Apps deployment
+  // SWA's Next.js hybrid rendering adapter processes this output
   output: 'standalone',
 
   // Environment variables accessible client-side (NEXT_PUBLIC_ prefix)

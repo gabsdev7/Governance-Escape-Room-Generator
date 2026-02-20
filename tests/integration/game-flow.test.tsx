@@ -28,10 +28,14 @@ function TestGameComponent() {
     startGame,
     toggleControl,
     submitAnswers,
+    advanceScenario,
     resetGame,
     canSubmit,
     isPlaying,
+    isScenarioComplete,
     hasResults,
+    totalScenarios,
+    currentScenarioNumber,
   } = useGameStateContext();
 
   return (
@@ -41,8 +45,12 @@ function TestGameComponent() {
       <div data-testid="selected-count">{state.selectedControlIds.length}</div>
       <div data-testid="score">{state.gradingResult?.score ?? 'none'}</div>
       <div data-testid="is-playing">{isPlaying.toString()}</div>
+      <div data-testid="is-scenario-complete">{isScenarioComplete.toString()}</div>
       <div data-testid="has-results">{hasResults.toString()}</div>
       <div data-testid="can-submit">{canSubmit.toString()}</div>
+      <div data-testid="total-scenarios">{totalScenarios}</div>
+      <div data-testid="current-scenario-number">{currentScenarioNumber}</div>
+      <div data-testid="scenario-results-count">{state.scenarioResults.length}</div>
 
       <button data-testid="start-game" onClick={startGame}>
         Start Game
@@ -55,6 +63,9 @@ function TestGameComponent() {
       </button>
       <button data-testid="submit" onClick={() => submitAnswers()}>
         Submit
+      </button>
+      <button data-testid="advance" onClick={advanceScenario}>
+        Advance
       </button>
       <button data-testid="reset" onClick={resetGame}>
         Reset
@@ -122,16 +133,72 @@ describe('Game Flow Integration', () => {
     expect(screen.getByTestId('selected-count')).toHaveTextContent('0');
   });
 
-  it('should grade submission and transition to results', () => {
+  it('should start with all 5 scenarios loaded', () => {
+    renderWithProvider();
+
+    fireEvent.click(screen.getByTestId('start-game'));
+
+    expect(screen.getByTestId('total-scenarios')).toHaveTextContent('5');
+    expect(screen.getByTestId('current-scenario-number')).toHaveTextContent('1');
+  });
+
+  it('should grade submission and transition to scenario-complete (not final results) on first submit', () => {
     renderWithProvider();
 
     fireEvent.click(screen.getByTestId('start-game'));
     fireEvent.click(screen.getByTestId('select-control'));
     fireEvent.click(screen.getByTestId('submit'));
 
-    expect(screen.getByTestId('status')).toHaveTextContent('results');
+    expect(screen.getByTestId('status')).toHaveTextContent('scenario-complete');
     expect(screen.getByTestId('score')).not.toHaveTextContent('none');
+    expect(screen.getByTestId('is-scenario-complete')).toHaveTextContent('true');
+    expect(screen.getByTestId('scenario-results-count')).toHaveTextContent('1');
+  });
+
+  it('should advance to next scenario after submitting', () => {
+    renderWithProvider();
+
+    fireEvent.click(screen.getByTestId('start-game'));
+    const firstScenarioId = screen.getByTestId('scenario-id').textContent;
+
+    fireEvent.click(screen.getByTestId('select-control'));
+    fireEvent.click(screen.getByTestId('submit'));
+    fireEvent.click(screen.getByTestId('advance'));
+
+    expect(screen.getByTestId('status')).toHaveTextContent('playing');
+    expect(screen.getByTestId('current-scenario-number')).toHaveTextContent('2');
+    expect(screen.getByTestId('selected-count')).toHaveTextContent('0');
+    expect(screen.getByTestId('scenario-id').textContent).not.toBe(firstScenarioId);
+  });
+
+  it('should transition to final results after completing all scenarios', () => {
+    renderWithProvider();
+
+    fireEvent.click(screen.getByTestId('start-game'));
+    const totalScenarios = parseInt(
+      screen.getByTestId('total-scenarios').textContent ?? '0',
+      10
+    );
+
+    // Play through all scenarios
+    for (let i = 0; i < totalScenarios; i++) {
+      fireEvent.click(screen.getByTestId('select-control'));
+      fireEvent.click(screen.getByTestId('submit'));
+
+      if (i < totalScenarios - 1) {
+        // Not the last scenario, advance
+        expect(screen.getByTestId('status')).toHaveTextContent('scenario-complete');
+        fireEvent.click(screen.getByTestId('advance'));
+        expect(screen.getByTestId('status')).toHaveTextContent('playing');
+      }
+    }
+
+    // After the last scenario, should be in results
+    expect(screen.getByTestId('status')).toHaveTextContent('results');
     expect(screen.getByTestId('has-results')).toHaveTextContent('true');
+    expect(screen.getByTestId('scenario-results-count')).toHaveTextContent(
+      totalScenarios.toString()
+    );
   });
 
   it('should produce a numeric score', () => {

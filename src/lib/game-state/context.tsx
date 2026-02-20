@@ -19,22 +19,38 @@ import {
   clearGameState,
   mergeWithInitialState,
 } from './persistence';
-import { selectRandomScenario } from '@/lib/scenarios';
+import { getAllScenarios } from '@/lib/scenarios';
 import { gradeSubmission, GradingResult } from '@/lib/grading';
 import { HintResult } from '@/lib/hints/types';
+
+/**
+ * Shuffle an array using Fisher-Yates
+ */
+function shuffleArray<T>(array: T[]): T[] {
+  const shuffled = [...array];
+  for (let i = shuffled.length - 1; i > 0; i--) {
+    const j = Math.floor(Math.random() * (i + 1));
+    [shuffled[i], shuffled[j]] = [shuffled[j], shuffled[i]];
+  }
+  return shuffled;
+}
 
 /**
  * Game state reducer
  */
 function gameReducer(state: GameState, action: GameAction): GameState {
   switch (action.type) {
-    case 'START_GAME':
+    case 'START_GAME': {
+      const scenarios = action.scenarios;
       return {
         ...initialGameState,
         status: 'playing',
-        currentScenario: action.scenario,
+        scenarios,
+        currentScenarioIndex: 0,
+        currentScenario: scenarios[0] ?? null,
         startedAt: new Date().toISOString(),
       };
+    }
 
     case 'SELECT_CONTROL':
       if (state.selectedControlIds.includes(action.controlId)) {
@@ -74,13 +90,42 @@ function gameReducer(state: GameState, action: GameAction): GameState {
         hintHistory: [...state.hintHistory, action.hint],
       };
 
-    case 'SUBMIT_ANSWERS':
+    case 'SUBMIT_ANSWERS': {
+      const isLastScenario =
+        state.currentScenarioIndex >= state.scenarios.length - 1;
+
+      const scenarioResult = {
+        scenario: state.currentScenario!,
+        selectedControlIds: [...state.selectedControlIds],
+        gradingResult: action.gradingResult,
+        hintsUsed: state.hintsUsed,
+      };
+
       return {
         ...state,
-        status: 'results',
+        status: isLastScenario ? 'results' : 'scenario-complete',
         gradingResult: action.gradingResult,
+        scenarioResults: [...state.scenarioResults, scenarioResult],
         submittedAt: new Date().toISOString(),
       };
+    }
+
+    case 'ADVANCE_SCENARIO': {
+      const nextIndex = state.currentScenarioIndex + 1;
+      if (nextIndex >= state.scenarios.length) {
+        return { ...state, status: 'results' };
+      }
+      return {
+        ...state,
+        status: 'playing',
+        currentScenarioIndex: nextIndex,
+        currentScenario: state.scenarios[nextIndex],
+        selectedControlIds: [],
+        hintsUsed: 0,
+        hintHistory: [],
+        gradingResult: null,
+      };
+    }
 
     case 'RESET_GAME':
       return initialGameState;
@@ -106,11 +151,16 @@ interface GameStateContextValue {
   toggleControl: (controlId: string) => void;
   addHint: (hint: HintResult) => void;
   submitAnswers: () => GradingResult | null;
+  advanceScenario: () => void;
   resetGame: () => void;
   // Computed values
   isPlaying: boolean;
+  isScenarioComplete: boolean;
   hasResults: boolean;
   canSubmit: boolean;
+  totalScenarios: number;
+  currentScenarioNumber: number;
+  isLastScenario: boolean;
 }
 
 const GameStateContext = createContext<GameStateContextValue | null>(null);
@@ -127,7 +177,10 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     if (savedState) {
       const mergedState = mergeWithInitialState(savedState);
       // Only restore if there's an active game
-      if (mergedState.status === 'playing' && mergedState.currentScenario) {
+      if (
+        (mergedState.status === 'playing' || mergedState.status === 'scenario-complete') &&
+        mergedState.currentScenario
+      ) {
         dispatch({ type: 'RESTORE_STATE', state: mergedState });
       }
     }
@@ -140,8 +193,9 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
   // Convenience actions
   const startGame = useCallback(() => {
-    const scenario = selectRandomScenario();
-    dispatch({ type: 'START_GAME', scenario });
+    const allScenarios = getAllScenarios();
+    const shuffled = shuffleArray(allScenarios);
+    dispatch({ type: 'START_GAME', scenarios: shuffled });
   }, []);
 
   const selectControl = useCallback((controlId: string) => {
@@ -172,6 +226,10 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     return result;
   }, [state.currentScenario, state.selectedControlIds]);
 
+  const advanceScenario = useCallback(() => {
+    dispatch({ type: 'ADVANCE_SCENARIO' });
+  }, []);
+
   const resetGame = useCallback(() => {
     clearGameState();
     dispatch({ type: 'RESET_GAME' });
@@ -179,8 +237,12 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
 
   // Computed values
   const isPlaying = state.status === 'playing';
-  const hasResults = state.status === 'results' && state.gradingResult !== null;
+  const isScenarioComplete = state.status === 'scenario-complete';
+  const hasResults = state.status === 'results' && state.scenarioResults.length > 0;
   const canSubmit = isPlaying && state.selectedControlIds.length > 0;
+  const totalScenarios = state.scenarios.length;
+  const currentScenarioNumber = state.currentScenarioIndex + 1;
+  const isLastScenario = state.currentScenarioIndex >= state.scenarios.length - 1;
 
   const value: GameStateContextValue = {
     state,
@@ -191,10 +253,15 @@ export function GameStateProvider({ children }: { children: ReactNode }) {
     toggleControl,
     addHint,
     submitAnswers,
+    advanceScenario,
     resetGame,
     isPlaying,
+    isScenarioComplete,
     hasResults,
     canSubmit,
+    totalScenarios,
+    currentScenarioNumber,
+    isLastScenario,
   };
 
   return (

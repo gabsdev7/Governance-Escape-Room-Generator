@@ -85,7 +85,7 @@ function validateGameState(state: unknown): state is GameState {
 
   // Check required fields exist
   if (typeof s.status !== 'string') return false;
-  if (!['idle', 'playing', 'submitted', 'results'].includes(s.status)) return false;
+  if (!['idle', 'playing', 'scenario-complete', 'submitted', 'results'].includes(s.status)) return false;
   if (!Array.isArray(s.selectedControlIds)) return false;
   if (typeof s.hintsUsed !== 'number') return false;
 
@@ -104,7 +104,10 @@ export function mergeWithInitialState(
     ...initialGameState,
     ...loaded,
     // Ensure arrays are present
+    scenarios: loaded.scenarios ?? [],
+    currentScenarioIndex: loaded.currentScenarioIndex ?? 0,
     selectedControlIds: loaded.selectedControlIds ?? [],
     hintHistory: loaded.hintHistory ?? [],
+    scenarioResults: loaded.scenarioResults ?? [],
   };
 }

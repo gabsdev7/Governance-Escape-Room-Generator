@@ -6,18 +6,12 @@ import { Button } from '@/components/ui/Button';
 
 export default function HomePage() {
   const router = useRouter();
-  const { state, startGame } = useGameState();
+  const { startGame } = useGameState();
 
   const handleStartGame = () => {
     startGame();
     router.push('/game');
   };
-
-  const handleContinueGame = () => {
-    router.push('/game');
-  };
-
-  const hasActiveGame = state.status === 'playing' && state.currentScenario;
 
   return (
     <div className="max-w-4xl mx-auto px-4 py-12">
@@ -39,33 +33,14 @@ export default function HomePage() {
       {/* Game Start Section */}
       <div className="bg-white rounded-2xl shadow-lg border border-slate-200 p-8 mb-8">
         <div className="text-center">
-          {hasActiveGame ? (
-            <>
-              <p className="text-slate-600 mb-6">
-                You have an active game in progress. Would you like to continue
-                or start a new game?
-              </p>
-              <div className="flex flex-col sm:flex-row gap-4 justify-center">
-                <Button variant="primary" size="lg" onClick={handleContinueGame}>
-                  Continue Game
-                </Button>
-                <Button variant="ghost" size="lg" onClick={handleStartGame}>
-                  Start New Game
-                </Button>
-              </div>
-            </>
-          ) : (
-            <>
-              <p className="text-slate-600 mb-6">
-                You&apos;ll be assigned one of five governance scenarios. Read the
-                story, identify the risks, and select the right governance
-                controls to earn the highest score.
-              </p>
-              <Button variant="primary" size="lg" onClick={handleStartGame}>
-                Start Game
-              </Button>
-            </>
-          )}
+          <p className="text-slate-600 mb-6">
+            Work through all five governance scenarios. Read each
+            story, identify the risks, and select the right governance
+            controls to earn the highest score.
+          </p>
+          <Button variant="primary" size="lg" onClick={handleStartGame}>
+            Start Game
+          </Button>
         </div>
       </div>
 
